@@ -8,6 +8,7 @@
   const taxInformationByState = {
     balearen: {
       free: -3000000,
+      nonResidentFree: -3000000,
       brackets: [
         { min: 0.01, max: 170472.04, percent: 0.0028, baseTax: 0, baseAmount: 0 },
         { min: 170472.04, max: 340937.94, percent: 0.0041, baseTax: 477.32, baseAmount: 170472.04 },
@@ -21,10 +22,11 @@
     },
     katalonien: {
       free: -500000,
+      nonResidentFree: -700000,
       brackets: [
-        { min: 0.01, max: 167129.45, percent: 0.00210, baseTax: 0, baseAmount: 0 },
-        { min: 167129.45, max: 334252.88, percent: 0.00315, baseTax: 350.97, baseAmount: 167129.45 },
-        { min: 334252.88, max: 668499.75, percent: 0.00525, baseTax: 877.41, baseAmount: 334252.88 },
+        { min: 0.01, max: 167129.45, percent: 0.00210, baseTax: 0, baseAmount: 0 }, // 350.971845
+        { min: 167129.45, max: 334252.88, percent: 0.00315, baseTax: 350.97, baseAmount: 167129.45 },  // 167123.43 = 526.4388045
+        { min: 334252.88, max: 668499.75, percent: 0.00525, baseTax: 877.41, baseAmount: 334252.88 }, // 165747.12 = 870.17238 
         { min: 668499.75, max: 1336999.75, percent: 0.00945, baseTax: 2632.21, baseAmount: 668499.75 },
         { min: 1336999.75, max: 2673999.01, percent: 0.01365, baseTax: 8949.54, baseAmount: 1336999.75 },
         { min: 2673999.01, max: 5347998.03, percent: 0.01785, baseTax: 27199.58, baseAmount: 2673999.01 },
@@ -35,6 +37,7 @@
     },
     valencia: {
       free: -500000,
+      nonResidentFree: -700000,
       brackets: [
         { min: 0.01, max: 167129.45, percent: 0.0025, baseTax: 0, baseAmount: 0 },
         { min: 167129.45, max: 334252.88, percent: 0.0037, baseTax: 417.82, baseAmount: 167129.45 },
@@ -48,6 +51,7 @@
     },
     murcia: {
       free: -700000,
+      nonResidentFree: -700000,
       brackets: [
         { min: 0.01, max: 167129.45, percent: 0.0024, baseTax: 0, baseAmount: 0 },
         { min: 167129.45, max: 334252.88, percent: 0.0036, baseTax: 401.11, baseAmount: 167129.45 },
@@ -112,6 +116,7 @@
     var darlehen = $(".calculatevermoegennr #darlehen").val();
     var jahr = $(".calculatevermoegennr #jahr").val();
     var bundesland = $(".calculatevermoegennr #bundesland").val();
+    var resident = $(".calculatevermoegennr #resident").is(":checked");
 
     preis = cleanup(preis)
     darlehen = cleanup(darlehen)
@@ -123,15 +128,13 @@
     if (darlehen >= 0.01) { preis = preis - darlehen; }
 
     $(".calculatevermoegennr #netto").val(Trenner(preis));
-    console.log("Kaeufer: " + preis);
-    console.log("Kaeufer: " + kaeufer);
     var half = preis / kaeufer;
     var percent;
     var rest;
     var tax;
     var alltax;
 
-    var free = taxInformationByState[bundesland].free;
+    var free = resident ? taxInformationByState[bundesland].free : taxInformationByState[bundesland].nonResidentFree;
     $(".calculatevermoegennr #freibetrag").val(Trenner(free));
 
     var measure = half + free;
@@ -150,6 +153,20 @@
         break;
       }
     }
+
+    let htmlTemplate = '<tr>' +
+      '<td>Min</td>' +
+      '<td>Max</td>' +
+      '<td>Base tax</td>' +
+      '</tr>';
+    htmlTemplate += taxBrackets.map(singleBracket => {
+      return '<tr>' +
+        '<td>' + Trenner(singleBracket.min) + '€</td>' +
+        '<td>' + Trenner(singleBracket.max) + '€</td>' +
+        '<td>' + Trenner(singleBracket.baseTax) + '€</td>' +
+        '</tr>'
+    })
+    $(".calculatevermoegennr #taxDetails").html(htmlTemplate);
 
     if (measure < 1) {
       $(".calculatevermoegennr #messung1").val("-");
@@ -206,12 +223,12 @@
 
 
 <body>
-  <form method="post" style="overflow: auto; display: block; margin:20px auto;" id="calculator"
+  <form method="post" style="overflow: auto; display: block; margin:20px auto;" id="calculator" onchange="calculatevermoegennr()"
     class="calculatevermoegennr">
-    <table style="width:50%;">
+    <table style="width:70%;">
       <thead>
         <tr>
-          <th colspan="3">
+          <th colspan="6">
             <h1>Vermögensteuer in Spanien</h1>
           </th>
         </tr>
@@ -227,38 +244,44 @@
               <option value="murcia">Murcia</option>
             </select>
           </td>
+          <td colspan="3" rowspan="7">
+            <table id="taxDetails"></table>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="2">Resident?</td>
+          <td colspan="1"><input type="checkbox" name="Resident" id="resident" onchange="calculatevermoegennr()">
+          </td>
         </tr>
 
         <tr>
           <td colspan="2">Anschaffungswert inkl. Steuern und Kosten</td>
-          <td colspan="1"><input type="text" size="10" name="Erwerbswert/Kaufpreis" id="preis" value="3.000.000,00"
+          <td colspan="1"><input type="text" size="10" name="Erwerbswert/Kaufpreis" id="preis" value="3.000.000,00" onchange="calculatevermoegennr()"
               onkeyup=""> €</td>
         </tr>
         <tr>
           <td colspan="2">Darlehen</td>
-          <td colspan="1"><input type="text" size="10" name="Darlehen" id="darlehen" value="0,00"> €</td>
+          <td colspan="1"><input type="text" size="10" name="Darlehen" id="darlehen" value="0,00" onchange="calculatevermoegennr()"> €</td>
         </tr>
         <tr>
           <td colspan="2">Netto-Betrag</td>
-          <td colspan="1"><input type="text" size="10" name="Netto Betrag" id="netto" value="-"
+          <td colspan="1"><input type="text" size="10" name="Netto Betrag" id="netto" value="-" onchange="calculatevermoegennr()"
               onkeyup="checkValue(this)" disabled=""> €</td>
         </tr>
         <tr>
           <td colspan="2">Freibetrag pro Käufer</td>
-          <td colspan="1"><input type="text" size="10" name="Freibetrag" id="freibetrag" value="0"
+          <td colspan="1"><input type="text" size="10" name="Freibetrag" id="freibetrag" value="0" onchange="calculatevermoegennr()"
               onkeyup="checkValue(this)" disabled=""> €</td>
         </tr>
         <tr>
           <td colspan="2">Anzahl der Käufer</td>
           <td colspan="1">
-            <input type="text" size="10" name="Anzahl der Käufer" id="kaeufer" value="1">
+            <input type="text" size="10" name="Anzahl der Käufer" id="kaeufer" value="1" onchange="calculatevermoegennr()">
           </td>
         </tr>
         <tr>
-          <td colspan="2"><b>Vermögensteuer pro Käufer</b></td>
-          <td colspan="1">
-            <input type="button" name="berechnen" id="berechnen" value="Berechnen" onclick="calculatevermoegennr()" />
-          </td>
+          <td colspan="3" style="height: 100px"><b>Vermögensteuer pro Käufer</b></td>
         </tr>
         <tr>
           <td colspan="2">Netto pro Käufer</td>
@@ -324,7 +347,8 @@
     border: 1px solid #555;
   }
 
-  input[type="text"], select {
+  input[type="text"],
+  select {
     width: 90%;
     padding: 5px;
     font-size: 1rem;
@@ -342,5 +366,9 @@
     border: 1px solid lime;
     color: black;
     margin: 20px 0px;
+  }
+
+  #taxDetails td {
+    border: white solid 1px;
   }
 </style>
