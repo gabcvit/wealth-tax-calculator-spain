@@ -1,374 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-    integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-    crossorigin="anonymous"></script>
-</head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spanish Wealth Tax Calculator</title>
 
-<script language="Javascript" type="text/javascript">
-  const taxInformationByState = {
-    balearen: {
-      free: -3000000,
-      nonResidentFree: -3000000,
-      brackets: [
-        { min: 0.01, max: 170472.04, percent: 0.0028, baseTax: 0, baseAmount: 0 },
-        { min: 170472.04, max: 340937.94, percent: 0.0041, baseTax: 477.32, baseAmount: 170472.04 },
-        { min: 340937.94, max: 681869.75, percent: 0.0069, baseTax: 1176.23, baseAmount: 340937.94 },
-        { min: 681869.75, max: 1336739.51, percent: 0.0124, baseTax: 3528.67, baseAmount: 681869.75 },
-        { min: 1336739.51, max: 2727479.00, percent: 0.0179, baseTax: 11649.06, baseAmount: 1336739.51 },
-        { min: 2727479.00, max: 5454958.00, percent: 0.0235, baseTax: 36543.30, baseAmount: 2727479.00 },
-        { min: 5454958.00, max: 10909915.99, percent: 0.029, baseTax: 100639.06, baseAmount: 5454958.00 },
-        { min: 10909915.99, max: Infinity, percent: 0.0345, baseTax: 258832.84, baseAmount: 10909915.99 }
-      ],
-    },
-    katalonien: {
-      free: -500000,
-      nonResidentFree: -700000,
-      brackets: [
-        { min: 0.01, max: 167129.45, percent: 0.00210, baseTax: 0, baseAmount: 0 }, // 350.971845
-        { min: 167129.45, max: 334252.88, percent: 0.00315, baseTax: 350.97, baseAmount: 167129.45 },  // 167123.43 = 526.4388045
-        { min: 334252.88, max: 668499.75, percent: 0.00525, baseTax: 877.41, baseAmount: 334252.88 }, // 165747.12 = 870.17238 
-        { min: 668499.75, max: 1336999.75, percent: 0.00945, baseTax: 2632.21, baseAmount: 668499.75 },
-        { min: 1336999.75, max: 2673999.01, percent: 0.01365, baseTax: 8949.54, baseAmount: 1336999.75 },
-        { min: 2673999.01, max: 5347998.03, percent: 0.01785, baseTax: 27199.58, baseAmount: 2673999.01 },
-        { min: 5347998.03, max: 10695996.06, percent: 0.02205, baseTax: 74930.46, baseAmount: 5347998.03 },
-        { min: 10695996.06, max: 20000000.00, percent: 0.02750, baseTax: 192853.82, baseAmount: 10695996.06 },
-        { min: 20000000.00, max: Infinity, percent: 0.03480, baseTax: 448713.93, baseAmount: 20000000.00 }
-      ]
-    },
-    valencia: {
-      free: -500000,
-      nonResidentFree: -700000,
-      brackets: [
-        { min: 0.01, max: 167129.45, percent: 0.0025, baseTax: 0, baseAmount: 0 },
-        { min: 167129.45, max: 334252.88, percent: 0.0037, baseTax: 417.82, baseAmount: 167129.45 },
-        { min: 334252.88, max: 668499.75, percent: 0.0062, baseTax: 1036.18, baseAmount: 334252.88 },
-        { min: 668499.75, max: 1336999.51, percent: 0.0112, baseTax: 3108.51, baseAmount: 668499.75 },
-        { min: 1336999.51, max: 2673999.01, percent: 0.0162, baseTax: 10595.71, baseAmount: 1336999.51 },
-        { min: 2673999.01, max: 5347998.03, percent: 0.0212, baseTax: 32255.10, baseAmount: 2673999.01 },
-        { min: 5347998.03, max: 10695996.06, percent: 0.0262, baseTax: 88943.88, baseAmount: 5347998.03 },
-        { min: 10695996.06, max: Infinity, percent: 0.035, baseTax: 229061.43, baseAmount: 10695996.06 }
-      ]
-    },
-    murcia: {
-      free: -700000,
-      nonResidentFree: -700000,
-      brackets: [
-        { min: 0.01, max: 167129.45, percent: 0.0024, baseTax: 0, baseAmount: 0 },
-        { min: 167129.45, max: 334252.88, percent: 0.0036, baseTax: 401.11, baseAmount: 167129.45 },
-        { min: 334252.88, max: 668499.75, percent: 0.006, baseTax: 1002.75, baseAmount: 334252.88 },
-        { min: 668499.75, max: 1336999.51, percent: 0.0108, baseTax: 3008.23, baseAmount: 668499.75 },
-        { min: 1336999.51, max: 2673999.01, percent: 0.0156, baseTax: 10228.03, baseAmount: 1336999.51 },
-        { min: 2673999.01, max: 5347998.03, percent: 0.0204, baseTax: 31085.22, baseAmount: 2673999.01 },
-        { min: 5347998.03, max: 10695996.06, percent: 0.0252, baseTax: 85634.80, baseAmount: 5347998.03 },
-        { min: 10695996.06, max: Infinity, percent: 0.03, baseTax: 220404.35, baseAmount: 10695996.06 }
-      ]
-    }
-  };
-
-  function cleanup(valueString) {
-    valueString = valueString.replaceAll('.', "");;
-    valueString = valueString.replace(',', ".");
-    return valueString;
-  }
-
-  function round(x) {
-    var k = (Math.round(x * 100) / 100).toString();
-    k += (k.indexOf('.') == -1) ? '.00' : '00';
-    return k.substring(0, k.indexOf('.') + 3);
-  }
-
-  function checkValue(obj) {
-    var value = obj.value.replace(',', ".");
-    value = value.replace('-', "");
-    obj.value = value;
-    if (isNaN(value)) value = value.substr(0, value.length - 1);
-    obj.value = value.replace('.', ",");
-  }
-
-  function Trenner(Zahl) {
-    Zahl = round(Zahl);
-    var n = Zahl.lastIndexOf(".");
-    var DezAnteil = Zahl.substr(n, 3);
-    DezAnteil = DezAnteil.replace('.', ",");
-    Zahl = '' + Zahl;
-    Zahl = Zahl.substr(0, n);
-    if (Zahl.length > 3) {
-      var mod = Zahl.length % 3;
-      var output = (mod > 0 ? (Zahl.substring(0, mod)) : '');
-      for (i = 0; i < Math.floor(Zahl.length / 3); i++) {
-        if ((mod == 0) && (i == 0))
-          output += (Zahl.substring(mod + 3 * i, mod + 3 * i + 3));
-        else
-          // hier wird das Trennzeichen festgelegt mit '.'
-          output += ('.' + Zahl.substring(mod + 3 * i, mod + 3 * i + 3));
-      }
-      output = output + DezAnteil;
-      return (output);
-    } else
-      Zahl = Zahl + DezAnteil;
-    return Zahl;
-  }
-
-  function calculatevermoegennr() {
-    var result = "";
-    var preis = $(".calculatevermoegennr #preis").val();
-    var kaeufer = $(".calculatevermoegennr #kaeufer").val();
-    var darlehen = $(".calculatevermoegennr #darlehen").val();
-    var jahr = $(".calculatevermoegennr #jahr").val();
-    var bundesland = $(".calculatevermoegennr #bundesland").val();
-    var resident = $(".calculatevermoegennr #resident").is(":checked");
-
-    preis = cleanup(preis)
-    darlehen = cleanup(darlehen)
-
-    $(".calculatevermoegennr #preis").val(Trenner(preis));
-    $(".calculatevermoegennr #darlehen").val(Trenner(darlehen));
-
-
-    if (darlehen >= 0.01) { preis = preis - darlehen; }
-
-    $(".calculatevermoegennr #netto").val(Trenner(preis));
-    var half = preis / kaeufer;
-    var percent;
-    var rest;
-    var tax;
-    var alltax;
-
-    var free = resident ? taxInformationByState[bundesland].free : taxInformationByState[bundesland].nonResidentFree;
-    $(".calculatevermoegennr #freibetrag").val(Trenner(free));
-
-    var measure = half + free;
-    $(".calculatevermoegennr #free1").val(Trenner(free));
-    const taxBrackets = taxInformationByState[bundesland].brackets;
-    percent = '-';
-    rest = '-';
-    tax = '-';
-
-    for (let i = 0; i < taxBrackets.length; i++) {
-      const bracket = taxBrackets[i];
-      if (measure >= bracket.min && measure <= bracket.max) {
-        percent = bracket.percent;
-        rest = measure - bracket.baseAmount;
-        tax = bracket.baseTax + (rest * percent);
-        break;
-      }
-    }
-
-    let htmlTemplate = '<tr>' +
-      '<td>Min</td>' +
-      '<td>Max</td>' +
-      '<td>Base tax</td>' +
-      '</tr>';
-    htmlTemplate += taxBrackets.map(singleBracket => {
-      return '<tr>' +
-        '<td>' + Trenner(singleBracket.min) + '€</td>' +
-        '<td>' + Trenner(singleBracket.max) + '€</td>' +
-        '<td>' + Trenner(singleBracket.baseTax) + '€</td>' +
-        '</tr>'
-    })
-    $(".calculatevermoegennr #taxDetails").html(htmlTemplate);
-
-    if (measure < 1) {
-      $(".calculatevermoegennr #messung1").val("-");
-      $(".calculatevermoegennr #messung2").val("-");
-      $(".calculatevermoegennr #vermoegensteuer1").val("-");
-      $(".calculatevermoegennr #vermoegensteuer2").val("-");
-      $(".calculatevermoegennr #tax").val('-');
-    }
-    if (kaeufer <= 0) {
-      window.alert("Bitte geben Sie eine Anzahl Verkäufer größer 0 an.");
-    } else if (kaeufer == 1) {
-      $(".calculatevermoegennr #half1").val(Trenner(half));
-      $(".calculatevermoegennr #kaeufer2").css("display", "none");
-      $(".calculatevermoegennr #kaeufer22").css("display", "none");
-      if (measure >= 1) {
-        $(".calculatevermoegennr #messung1").val(Trenner(measure));
-        $(".calculatevermoegennr #vermoegensteuer1").val(Trenner(tax));
-        alltax = tax * 1;
-        $(".calculatevermoegennr #tax").val(Trenner(alltax));
-      }
-    } else if (kaeufer == 2) {
-      $(".calculatevermoegennr #half1").val(Trenner(half));
-      $(".calculatevermoegennr #kaeufer2").css("display", "");
-      $(".calculatevermoegennr #kaeufer22").css("display", "");
-      if (measure >= 1) {
-        $(".calculatevermoegennr #messung1").val(Trenner(measure));
-        $(".calculatevermoegennr #messung2").val(Trenner(measure));
-        $(".calculatevermoegennr #vermoegensteuer1").val(Trenner(tax));
-        $(".calculatevermoegennr #vermoegensteuer2").val(Trenner(tax));
-        alltax = tax * 2;
-        $(".calculatevermoegennr #tax").val(Trenner(alltax));
-      }
-    } else {
-      window.alert("Maximal 2 verkäufer möglich!");
-    }
-  }
-
-  $(document).ready(function () {
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-
-    if (urlParams.get('value')) {
-      $("#preis").val(urlParams.get('value'));
-    }
-
-    if (urlParams.get('buyer')) {
-      $("#kaeufer").val(urlParams.get('buyer'));
-    }
-
-    calculatevermoegennr();
-  });
-
-</script>
-
-
-<body>
-  <form method="post" style="overflow: auto; display: block; margin:20px auto;" id="calculator" onchange="calculatevermoegennr()"
-    class="calculatevermoegennr">
-    <table style="width:70%;">
-      <thead>
-        <tr>
-          <th colspan="6">
-            <h1>Vermögensteuer in Spanien</h1>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td colspan="2">Bundesland / Autonome Gemeinschaft</td>
-          <td colspan="1">
-            <select name="Bundesland" id="bundesland" onchange="calculatevermoegennr()">
-              <option value="balearen">Balearen</option>
-              <option value="katalonien">Katalonien</option>
-              <option value="valencia">Valencia</option>
-              <option value="murcia">Murcia</option>
-            </select>
-          </td>
-          <td colspan="3" rowspan="7">
-            <table id="taxDetails"></table>
-          </td>
-        </tr>
-
-        <tr>
-          <td colspan="2">Resident?</td>
-          <td colspan="1"><input type="checkbox" name="Resident" id="resident" onchange="calculatevermoegennr()">
-          </td>
-        </tr>
-
-        <tr>
-          <td colspan="2">Anschaffungswert inkl. Steuern und Kosten</td>
-          <td colspan="1"><input type="text" size="10" name="Erwerbswert/Kaufpreis" id="preis" value="3.000.000,00" onchange="calculatevermoegennr()"
-              onkeyup=""> €</td>
-        </tr>
-        <tr>
-          <td colspan="2">Darlehen</td>
-          <td colspan="1"><input type="text" size="10" name="Darlehen" id="darlehen" value="0,00" onchange="calculatevermoegennr()"> €</td>
-        </tr>
-        <tr>
-          <td colspan="2">Netto-Betrag</td>
-          <td colspan="1"><input type="text" size="10" name="Netto Betrag" id="netto" value="-" onchange="calculatevermoegennr()"
-              onkeyup="checkValue(this)" disabled=""> €</td>
-        </tr>
-        <tr>
-          <td colspan="2">Freibetrag pro Käufer</td>
-          <td colspan="1"><input type="text" size="10" name="Freibetrag" id="freibetrag" value="0" onchange="calculatevermoegennr()"
-              onkeyup="checkValue(this)" disabled=""> €</td>
-        </tr>
-        <tr>
-          <td colspan="2">Anzahl der Käufer</td>
-          <td colspan="1">
-            <input type="text" size="10" name="Anzahl der Käufer" id="kaeufer" value="1" onchange="calculatevermoegennr()">
-          </td>
-        </tr>
-        <tr>
-          <td colspan="3" style="height: 100px"><b>Vermögensteuer pro Käufer</b></td>
-        </tr>
-        <tr>
-          <td colspan="2">Netto pro Käufer</td>
-          <td colspan="1"><input type="text" size="10" name="die haelfte" id="half1" value="-"
-              onkeyup="checkValue(this)" disabled=""> €</td>
-        </tr>
-        <tr>
-          <td colspan="2">- Freibetrag pro Käufer</td>
-          <td colspan="1"><input type="text" size="10" name="Freibetrag" id="free1" value="-" onkeyup="checkValue(this)"
-              disabled=""> €</td>
-        </tr>
-        <tr height="10px" style="">
-          <td colspan="3"></td>
-        </tr>
-        <tr id="kaeufer1">
-          <td><b>Käufer 1</b></td>
-          <td>Bemessungsgrundlage</td>
-          <td colspan="1"><input type="text" size="10" name="Bemessungsgrundlage" id="messung1" value="-"
-              onkeyup="checkValue(this)" disabled=""> €</td>
-        </tr>
-        <tr id="kaeufer1">
-          <td colspan="1"></td>
-          <td colspan="1">Vermögensteuerbetrag</td>
-          <td colspan="1"><input type="text" size="10" name="Vermögensteuerbetrag" id="vermoegensteuer1" value="-"
-              onkeyup="checkValue(this)" disabled=""> €</td>
-        </tr>
-        <tr id="kaeufer2" style="display:none">
-          <td><b>Käufer 2</b></td>
-          <td>Bemessungsgrundlage</td>
-          <td colspan="1"><input type="text" size="10" name="Bemessungsgrundlage" id="messung2" value="-"
-              onkeyup="checkValue(this)" disabled=""> €</td>
-        </tr>
-        <tr id="kaeufer22" style="display:none">
-          <td></td>
-          <td colspan="1">Vermögensteuerbetrag</td>
-          <td colspan="1"><input type="text" size="10" name="Vermögensteuerbetrag" id="vermoegensteuer2" value="-"
-              onkeyup="checkValue(this)" disabled=""> €</td>
-        </tr>
-        <tr height="10px">
-          <td colspan="3"></td>
-          <td></td>
-        </tr>
-        <tr>
-          <td colspan="2"><b>Gesamter Steuerbetrag (alle Käufer)</b></td>
-          <td colspan="1"><b><input type="text" size="10" name="Gesamter Steuerbetrag" id="tax" value="-"
-                onkeyup="checkValue(this)" disabled=""> €</b></td>
-        </tr>
-      </tbody>
-    </table>
-  </form>
-</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    color: white;
-    background-color: #000;
-  }
+:root {
+  --bg1: #0f172a;
+  --bg2: #020617;
+  --glass: rgba(30, 41, 59, 0.65);
+  --accent: #38bdf8;
+  --accent2: #6366f1;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: rgba(255,255,255,0.08);
+}
 
-  input[disabled] {
-    background-color: #000;
-    color: #888;
-    border: 1px solid #555;
-  }
+body {
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top left, var(--bg1), var(--bg2));
+  color: var(--text);
+  margin: 0;
+  padding: 60px 20px;
+}
 
-  input[type="text"],
-  select {
-    width: 90%;
-    padding: 5px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-  }
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 50px;
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 80px rgba(0,0,0,.6);
+  animation: fadeIn .8s ease;
+}
 
-  input[type="button"] {
-    cursor: pointer;
-    width: 98%;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 1rem;
-    background: lime;
-    border: 1px solid lime;
-    color: black;
-    margin: 20px 0px;
-  }
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
 
-  #taxDetails td {
-    border: white solid 1px;
-  }
+h1 {
+  text-align:center;
+  font-weight:600;
+  background: linear-gradient(90deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px 40px;
+  align-items:center;
+}
+
+label {
+  font-weight:500;
+}
+
+input, select {
+  background: rgba(15,23,42,.7);
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:10px;
+  padding:12px;
+  transition:.3s ease;
+}
+
+input:focus, select:focus {
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(56,189,248,.2);
+}
+
+input:disabled {
+  color:var(--muted);
+}
+
+.section-title {
+  margin-top:50px;
+  font-weight:600;
+  border-bottom:1px solid var(--border);
+  padding-bottom:10px;
+}
+
+.total {
+  font-size:1.3rem;
+  font-weight:700;
+  color:var(--accent);
+}
+
+button {
+  margin-top:40px;
+  width:100%;
+  padding:16px;
+  border-radius:12px;
+  border:none;
+  font-weight:600;
+  font-size:1rem;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white;
+  transition:.2s ease;
+}
+
+button:hover {
+  transform:translateY(-2px);
+  box-shadow:0 10px 30px rgba(56,189,248,.4);
+}
+
+.tax-table {
+  margin-top:30px;
+  border-collapse:collapse;
+  width:100%;
+  font-size:.9rem;
+}
+
+.tax-table th,
+.tax-table td {
+  border:1px solid var(--border);
+  padding:8px;
+  text-align:right;
+}
+
+.tax-table th {
+  color:var(--accent);
+}
+
+.pulse {
+  animation:pulseAnim .6s ease;
+}
+
+@keyframes pulseAnim {
+  0%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+  100%{transform:scale(1);}
+}
+
+@media(max-width:900px){
+  .grid { grid-template-columns:1fr; }
+}
 </style>
+</head>
+
+<body>
+
+<div class="container">
+<div id="exportArea">
+
+<h1>Wealth Tax in Spain</h1>
+
+<div class="grid">
+<label>Autonomous Community</label>
+<select id="state">
+<option value="balearicIslands">Balearic Islands</option>
+<option value="catalonia">Catalonia</option>
+<option value="valencia">Valencia</option>
+<option value="murcia">Murcia</option>
+</select>
+
+<label>Resident?</label>
+<input type="checkbox" id="resident">
+
+<label>Acquisition Value (incl. taxes & costs)</label>
+<input type="text" id="price" value="3.000.000,00">
+
+<label>Loan</label>
+<input type="text" id="loan" value="0,00">
+
+<label>Net Amount</label>
+<input type="text" id="net" disabled>
+
+<label>Allowance per Buyer</label>
+<input type="text" id="allowance" disabled>
+
+<label>Number of Buyers (max 2)</label>
+<input type="number" id="buyers" value="1" min="1" max="2">
+</div>
+
+<div class="section-title">Wealth Tax per Buyer</div>
+
+<div class="grid">
+<label>Net per Buyer</label>
+<input type="text" id="half" disabled>
+
+<label>Taxable Base Buyer 1</label>
+<input type="text" id="base1" disabled>
+
+<label>Tax Buyer 1</label>
+<input type="text" id="tax1" disabled>
+
+<label id="buyer2Label" style="display:none;">Taxable Base Buyer 2</label>
+<input type="text" id="base2" disabled style="display:none;">
+
+<label id="buyer2TaxLabel" style="display:none;">Tax Buyer 2</label>
+<input type="text" id="tax2" disabled style="display:none;">
+
+<label class="total">Total Tax (All Buyers)</label>
+<input type="text" id="totalTax" disabled class="total">
+</div>
+
+<table class="tax-table" id="taxDetails"></table>
+
+</div>
+
+<button id="exportBtn">Print page</button>
+</div>
+
+<script>
+/* ===== TAX DATA ===== */
+const TAX_DATA = {
+  balearicIslands: { free: -3000000, nonResidentFree: -3000000, brackets: [
+    { min: 0.01, max: 170472.04, percent: 0.0028, baseTax: 0, baseAmount: 0 },
+    { min: 170472.04, max: 340937.94, percent: 0.0041, baseTax: 477.32, baseAmount: 170472.04 },
+    { min: 340937.94, max: 681869.75, percent: 0.0069, baseTax: 1176.23, baseAmount: 340937.94 },
+    { min: 681869.75, max: 1336739.51, percent: 0.0124, baseTax: 3528.67, baseAmount: 681869.75 },
+    { min: 1336739.51, max: 2727479.00, percent: 0.0179, baseTax: 11649.06, baseAmount: 1336739.51 },
+    { min: 2727479.00, max: 5454958.00, percent: 0.0235, baseTax: 36543.30, baseAmount: 2727479.00 },
+    { min: 5454958.00, max: 10909915.99, percent: 0.029, baseTax: 100639.06, baseAmount: 5454958.00 },
+    { min: 10909915.99, max: Infinity, percent: 0.0345, baseTax: 258832.84, baseAmount: 10909915.99 }
+  ]},
+  catalonia: { free: -500000, nonResidentFree: -700000, brackets: [
+    { min: 0.01, max: 167129.45, percent: 0.00210, baseTax: 0, baseAmount: 0 },
+    { min: 167129.45, max: 334252.88, percent: 0.00315, baseTax: 350.97, baseAmount: 167129.45 },
+    { min: 334252.88, max: 668499.75, percent: 0.00525, baseTax: 877.41, baseAmount: 334252.88 },
+    { min: 668499.75, max: 1336999.75, percent: 0.00945, baseTax: 2632.21, baseAmount: 668499.75 },
+    { min: 1336999.75, max: 2673999.01, percent: 0.01365, baseTax: 8949.54, baseAmount: 1336999.75 },
+    { min: 2673999.01, max: 5347998.03, percent: 0.01785, baseTax: 27199.58, baseAmount: 2673999.01 },
+    { min: 5347998.03, max: 10695996.06, percent: 0.02205, baseTax: 74930.46, baseAmount: 5347998.03 },
+    { min: 10695996.06, max: 20000000.00, percent: 0.02750, baseTax: 192853.82, baseAmount: 10695996.06 },
+    { min: 20000000.00, max: Infinity, percent: 0.03480, baseTax: 448713.93, baseAmount: 20000000.00 }
+  ]},
+  valencia: { free: -500000, nonResidentFree: -700000, brackets: [
+    { min: 0.01, max: 167129.45, percent: 0.0025, baseTax: 0, baseAmount: 0 },
+    { min: 167129.45, max: 334252.88, percent: 0.0037, baseTax: 417.82, baseAmount: 167129.45 },
+    { min: 334252.88, max: 668499.75, percent: 0.0062, baseTax: 1036.18, baseAmount: 334252.88 },
+    { min: 668499.75, max: 1336999.51, percent: 0.0112, baseTax: 3108.51, baseAmount: 668499.75 },
+    { min: 1336999.51, max: 2673999.01, percent: 0.0162, baseTax: 10595.71, baseAmount: 1336999.51 },
+    { min: 2673999.01, max: 5347998.03, percent: 0.0212, baseTax: 32255.10, baseAmount: 2673999.01 },
+    { min: 5347998.03, max: 10695996.06, percent: 0.0262, baseTax: 88943.88, baseAmount: 5347998.03 },
+    { min: 10695996.06, max: Infinity, percent: 0.035, baseTax: 229061.43, baseAmount: 10695996.06 }
+  ]},
+  murcia: { free: -700000, nonResidentFree: -700000, brackets: [
+    { min: 0.01, max: 167129.45, percent: 0.0024, baseTax: 0, baseAmount: 0 },
+    { min: 167129.45, max: 334252.88, percent: 0.0036, baseTax: 401.11, baseAmount: 167129.45 },
+    { min: 334252.88, max: 668499.75, percent: 0.006, baseTax: 1002.75, baseAmount: 334252.88 },
+    { min: 668499.75, max: 1336999.51, percent: 0.0108, baseTax: 3008.23, baseAmount: 668499.75 },
+    { min: 1336999.51, max: 2673999.01, percent: 0.0156, baseTax: 10228.03, baseAmount: 1336999.51 },
+    { min: 2673999.01, max: 5347998.03, percent: 0.0204, baseTax: 31085.22, baseAmount: 2673999.01 },
+    { min: 5347998.03, max: 10695996.06, percent: 0.0252, baseTax: 85634.80, baseAmount: 5347998.03 },
+    { min: 10695996.06, max: Infinity, percent: 0.03, baseTax: 220404.35, baseAmount: 10695996.06 }
+  ]}
+};
+</script>
+
+<script>
+/* ===== UTILITIES ===== */
+const NumberFormatter = {
+  parse(v){ return parseFloat(v.replaceAll('.','').replace(',','.'))||0; },
+  format(v){ return v.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+};
+
+/* ===== CALCULATOR ===== */
+class WealthTaxCalculator{
+  static calculate({state,resident,price,loan,buyers}){
+    if(buyers<=0||buyers>2){ alert("Maximum 2 buyers allowed."); return null; }
+
+    const data=TAX_DATA[state];
+    const net=loan>=0.01?price-loan:price;
+    const half=net/buyers;
+    const free=resident?data.free:data.nonResidentFree;
+    const measure=half+free;
+
+    let tax=0;
+    if(measure>=1){
+      for(const b of data.brackets){
+        if(measure>=b.min&&measure<=b.max){
+          tax=b.baseTax+((measure-b.baseAmount)*b.percent);
+          break;
+        }
+      }
+    }
+
+    return{
+      net,half,free,measure,
+      taxPerBuyer:tax,
+      totalTax:tax*buyers,
+      brackets:data.brackets
+    };
+  }
+}
+
+/* ===== UI ===== */
+class CalculatorUI{
+  constructor(){
+    this.bind();
+    this.loadParams();
+    this.calculate();
+  }
+
+  bind(){
+    document.querySelectorAll("input,select").forEach(el=>{
+      el.addEventListener("input",()=>this.calculate());
+    });
+
+    document.getElementById("exportBtn")
+      .addEventListener("click",this.exportPDF);
+  }
+
+  loadParams(){
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("value")) price.value=params.get("value");
+    if(params.get("buyer")) buyers.value=params.get("buyer");
+  }
+
+  calculate(){
+    const result=WealthTaxCalculator.calculate({
+      state:state.value,
+      resident:resident.checked,
+      price:NumberFormatter.parse(price.value),
+      loan:NumberFormatter.parse(loan.value),
+      buyers:parseInt(buyers.value)
+    });
+    if(!result)return;
+
+    net.value=NumberFormatter.format(result.net);
+    allowance.value=NumberFormatter.format(result.free);
+    half.value=NumberFormatter.format(result.half);
+    base1.value=NumberFormatter.format(result.measure);
+    tax1.value=NumberFormatter.format(result.taxPerBuyer);
+    totalTax.value=NumberFormatter.format(result.totalTax);
+
+    totalTax.classList.remove("pulse");
+    void totalTax.offsetWidth;
+    totalTax.classList.add("pulse");
+
+    if(buyers.value==2){
+      buyer2Label.style.display="";
+      buyer2TaxLabel.style.display="";
+      base2.style.display="";
+      tax2.style.display="";
+      base2.value=NumberFormatter.format(result.measure);
+      tax2.value=NumberFormatter.format(result.taxPerBuyer);
+    }else{
+      buyer2Label.style.display="none";
+      buyer2TaxLabel.style.display="none";
+      base2.style.display="none";
+      tax2.style.display="none";
+    }
+
+    taxDetails.innerHTML=`
+      <tr>
+        <th>Min (€)</th>
+        <th>Max (€)</th>
+        <th>Base Tax (€)</th>
+      </tr>
+      ${result.brackets.map(b=>`
+        <tr>
+          <td>${NumberFormatter.format(b.min)}</td>
+          <td>${b.max===Infinity?"∞":NumberFormatter.format(b.max)}</td>
+          <td>${NumberFormatter.format(b.baseTax)}</td>
+        </tr>
+      `).join("")}
+    `;
+  }
+
+  exportPDF(){
+    window.print();
+  }
+}
+
+new CalculatorUI();
+</script>
+
+</body>
+</html>
